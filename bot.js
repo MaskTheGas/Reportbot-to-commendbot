@@ -107,20 +107,29 @@ function processSteamReport(element, indexElement, array) {
         SteamGCs[indexElement].on("message", function(header, buffer, callback) {
             switch (header.msg) {
                 case ClientWelcome:
-                    clearInterval(IntervalIntArray[indexElement]);
-                    sendReport(SteamGCs[indexElement], SteamClients[indexElement], account_name, steamID);
+                    clearInterval(helloMsgInterval);
+                    console.log("[INFO] Trying to commend the user!");
+
+                    steamGameCoordinator.send({
+                        msg: protos.ECsgoGCMsg.k_EMsgGCCStrike15_v2_ClientCommendPlayer,
+                        proto: { }
+                    }, new protos.CMsgGCCStrike15_v2_ClientCommendPlayer({
+                        accountId: new steamID(process.argv[3]).accountid,
+                        matchId: 8,
+                        commendation: new protos.PlayerCommendationInfo({
+                            cmdFriendly: 1,
+                            cmdTeaching: 2,
+                            cmdLeader: 4
+                        }),
+                        tokens: 10
+                    }).toBuffer());
+
+                    setTimeout(function() {
+                        stop();
+                    }, 3000);
                     break;
-                case Protos.ECsgoGCMsg.k_EMsgGCCStrike15_v2_MatchmakingGC2ClientHello:
-                    break;
-                case Protos.ECsgoGCMsg.k_EMsgGCCStrike15_v2_ClientReportResponse:
-                    CountReports++;
-                    console.log("[GC - " + account_name + "] (" + CountReports + ") Report with confirmation ID: " + Protos.CMsgGCCStrike15_v2_ClientReportResponse.decode(buffer).confirmationId.toString() + " sent!");
-                    SteamClients[indexElement].disconnect();
-                    SteamClients.splice(indexElement, 1);
-                    SteamFriends.splice(indexElement, 1);
-                    SteamGCs.splice(indexElement, 1);
-                    SteamUsers.splice(indexElement, 1);
-                    IntervalIntArray.splice(indexElement, 1);
+                case protos.ECsgoGCMsg.k_EMsgGCCStrike15_v2_MatchmakingGC2ClientHello:
+                    console.log("[INFO] MM Client Hello sent!");
                     break;
                 default:
                     console.log(header);
@@ -128,23 +137,6 @@ function processSteamReport(element, indexElement, array) {
             }
         });
     }
-}
-
-function sendReport(GC, Client, account_name) {
-    var account_id = new SteamID(steamID).accountid;
-    GC.send({
-        msg: Protos.ECsgoGCMsg.k_EMsgGCCStrike15_v2_ClientReportPlayer,
-        proto: {}
-    }, new Protos.CMsgGCCStrike15_v2_ClientReportPlayer({
-        accountId: account_id,
-        matchId: 8,
-        rptAimbot: 2,
-        rptWallhack: 3,
-        rptSpeedhack: 4,
-        rptTeamharm: 5,
-        rptTextabuse: 6,
-        rptVoiceabuse: 7
-    }).toBuffer());
 }
 
 process.on("uncaughtException", function(err) {});
