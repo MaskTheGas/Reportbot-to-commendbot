@@ -11,7 +11,7 @@ var fs = require("fs"),
     SteamGCs = {},
     SteamFriends = {},
     process = require("process"),
-    steamID = readlineSync.question("SteamID64 which will be reported: "),
+    steamID = readlineSync.question("SteamID64 which will be commended "),
     ClientHello = 4006,
     ClientWelcome = 4004;
 
